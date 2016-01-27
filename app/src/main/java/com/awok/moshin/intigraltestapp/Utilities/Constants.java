@@ -18,7 +18,7 @@ public class Constants {
     public static Integer Exception = -1;
     public static String API_KEY = "9944765f578d7b5224ff43a56dde5562";
     public static String IMAGE_BASE_PATH = "http://image.tmdb.org/t/p/w150/";
-
+    public static String LARGE_IMAGE_BASE_PATH = "http://image.tmdb.org/t/p/w500/";
     public static String connectionTimeOutMessage = "Internet Connection is Slow!";
     public static String JSON_PRODUCT_LIST_NAME = "PRODUCTS";
     public static String JSON_CATEGORY_LIST_NAME = "categories";

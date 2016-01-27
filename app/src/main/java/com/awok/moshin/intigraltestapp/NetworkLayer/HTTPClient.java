@@ -33,8 +33,12 @@ public class HTTPClient{
     SharedPreferences mSharedPrefs;
     static int TIMEOUT_VALUE = 5000;
 
-
-
+    /**
+     *
+     * Constructor
+     *
+     * @param preferences
+     */
     public HTTPClient(SharedPreferences preferences)
     {
         mSharedPrefs = preferences;
@@ -64,6 +68,12 @@ public class HTTPClient{
         HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
     }
 
+    /**
+     * GET METHOD
+     * @param reqapi
+     * @return
+     * @throws IOException
+     */
     public String get(String reqapi) throws IOException
     {
         URL url = new URL(reqapi);
@@ -75,6 +85,13 @@ public class HTTPClient{
         return resp;
     }
 
+    /**
+     * POST METHOD
+     * @param reqapi
+     * @param params
+     * @return
+     * @throws IOException
+     */
     public String post(String reqapi,String params) throws IOException
     {
         URL url;
@@ -95,6 +112,13 @@ public class HTTPClient{
         return resp;
     }
 
+    /**
+     * PUT METHOD
+     * @param reqapi
+     * @param params
+     * @return
+     * @throws IOException
+     */
     public String put(String reqapi,String params) throws IOException
     {
         URL url = new URL(reqapi);
@@ -113,6 +137,14 @@ public class HTTPClient{
         return resp;
     }
 
+
+    /**
+     * DELETE METHOD
+     * @param reqapi
+     * @param params
+     * @return
+     * @throws IOException
+     */
     public String delete(String reqapi, String params) throws IOException
     {
         URL url = new URL(reqapi);
@@ -126,6 +158,12 @@ public class HTTPClient{
         return resp;
     }
 
+
+    /**
+     * Extracts input stream from URLConnection and returns response
+     * @param connection
+     * @return
+     */
     private static String readURL(URLConnection connection){
 
         String str = new String();
@@ -154,7 +192,12 @@ public class HTTPClient{
         return str;
     }
 
-    // Reads an InputStream and converts it to a String.
+    /**
+     * Reads an InputStream and converts it to a String
+     * @param stream
+     * @return
+     * @throws IOException
+     */
     private static String streamToString(InputStream stream) throws IOException {
         BufferedReader br = null;
         StringBuilder sb = new StringBuilder();

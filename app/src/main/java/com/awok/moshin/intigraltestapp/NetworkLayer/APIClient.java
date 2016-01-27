@@ -20,17 +20,30 @@ public class APIClient {
     private int METHOD_INDEX = 2;
     private int PARAMS_INDEX = 3;
 
+    /**
+     * Constructor
+     * @param context
+     * @param callback
+     */
     public APIClient(Context context, AsyncCallback callback) {
         mContext = context;
         mCallback = callback;
-
     }
 
+
+    /**
+     * API CALL METHOD
+     * @param category
+     */
     public void GetMoviesByCategory(String category) {
         mTask = new AsyncTaskWithDialog();
         mTask.execute(mContext, Constants.API_SERVER_URL+category+"/?api_key="+Constants.API_KEY, "GET", null);
     }
 
+
+    /**
+     * ASYNC TASK TO REQUEST FROM SERVER IN BACKGROUND
+     */
     public class AsyncTaskWithDialog extends AsyncTask<Object, Void, String> {
 
         @Override
@@ -45,34 +58,26 @@ public class APIClient {
             try {
                 Context context = (Context) parameters[CONTEXT_INDEX];
                 String url = (String) parameters[URI_INDEX];
-//                url = URLEncoder.encode(url);
                 HTTPClient client = new HTTPClient(
                         context.getSharedPreferences(Constants.PREFS_NAME, 0));
 
                 String params = (String) parameters[PARAMS_INDEX];
-                System.out.println("URL: "+url);
-
                 if (parameters[METHOD_INDEX] == "POST") {
                         postResponse = client.post(url, params);
                     return postResponse;
-
                 } else if (parameters[METHOD_INDEX] == "GET")
                 {
                     String resp = client.get(url);
-                    Log.v(TAG, "resp: "+resp);
                     return resp;
                 }
-
                 else if (parameters[METHOD_INDEX] == "PUT")
                     return client.put(url, params);
                 else if (parameters[METHOD_INDEX] == "DELETE") {
-                    System.out.println("DELETE");
                     return client.delete(url, params);
                 }
                 return Constants.Success.toString();
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.e(TAG, "EXCEPTION: " + e.toString());
             }
             return Constants.Exception.toString();
         }

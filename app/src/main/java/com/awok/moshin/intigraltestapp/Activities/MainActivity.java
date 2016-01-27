@@ -1,13 +1,14 @@
 package com.awok.moshin.intigraltestapp.Activities;
 
 import android.content.Context;
-import android.graphics.Color;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +24,6 @@ import com.awok.moshin.intigraltestapp.Utilities.Constants;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     private LayoutInflater inflator;
     private LinearLayout parentLayout;
+    private ProgressBar progressBar;
     private ArrayList<Movie> upComingMovieArrayList = new ArrayList<Movie>();
     private ArrayList<Movie> nowPlayingMovieArrayList = new ArrayList<Movie>();
     private ArrayList<Movie> popularMovieArrayList = new ArrayList<Movie>();
@@ -44,43 +45,37 @@ public class MainActivity extends AppCompatActivity {
         inflator = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         parentLayout = (LinearLayout) findViewById(R.id.parentLayout);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-//        for(int i=0;i<7;i++){
-//            //Adding dynamic header
-//            TextView headingTextView = (TextView) inflator.inflate(R.layout.header_text_layout, null).findViewById(R.id.headerTextView);
-//            headingTextView.setText("Heading "+i);
-//
-//            //Adding horizontal scrollview container for interactive images
-//            LinearLayout containerLayout = (LinearLayout) inflator.inflate(R.layout.horizontal_scroll_view_layout, null)
-//                    .findViewById(R.id.containerLayout);
-//            for(int x=0;x<10;x++){
-//                //Adding interactive images
-//                ImageView imageView = (ImageView) inflator.inflate(R.layout.image_layout, null)
-//                        .findViewById(R.id.imageView);
-//                imageView.setImageDrawable(getResources().getDrawable(R.drawable.test_image));
-//                imageView.setTag(x);
-//                imageView.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        Toast.makeText(MainActivity.this, "Image: " + v.getTag(), Toast.LENGTH_SHORT).show();
-//                    }
-//                });
-//                containerLayout.addView(imageView);
-//            }
-//            parentLayout.addView(headingTextView);
-//            parentLayout.addView((View) containerLayout.getParent());
-//        }
+        requestData();
 
-        new APIClient(this,  new GetUpcomingCallback()).GetMoviesByCategory("upcoming");
-        new APIClient(this,  new GetTopRatedCallback()).GetMoviesByCategory("top_rated");
-        new APIClient(this,  new GetPopularCallback()).GetMoviesByCategory("popular");
-        new APIClient(this,  new GetNowPlayingCallback()).GetMoviesByCategory("now_playing");
 
     }
 
+    /**
+     * Requesting parrallel API CALLs from server
+     */
+    private void requestData(){
+        if(Constants.isNetworkAvailable(this)){
+            new APIClient(this,  new GetUpcomingCallback()).GetMoviesByCategory("upcoming");
+            new APIClient(this,  new GetTopRatedCallback()).GetMoviesByCategory("top_rated");
+            new APIClient(this,  new GetPopularCallback()).GetMoviesByCategory("popular");
+            new APIClient(this,  new GetNowPlayingCallback()).GetMoviesByCategory("now_playing");
+        }
+        else{
+            Toast.makeText(this, "Please connect to internet", Toast.LENGTH_LONG).show();
+            progressBar.setVisibility(View.GONE);
+        }
+    }
 
 
-    public class GetUpcomingCallback extends AsyncCallback {
+    /**
+     *
+     * Following are the respective callback functions of API calls
+     *
+     */
+
+    private class GetUpcomingCallback extends AsyncCallback {
         public void onTaskComplete(String response) {
             System.out.println("Response: "+response);
             try {
@@ -111,8 +106,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    public class GetNowPlayingCallback extends AsyncCallback {
+    private class GetNowPlayingCallback extends AsyncCallback {
         public void onTaskComplete(String response) {
             System.out.println("Response: "+response);
             try {
@@ -143,8 +137,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    public class GetPopularCallback extends AsyncCallback {
+    private class GetPopularCallback extends AsyncCallback {
         public void onTaskComplete(String response) {
             System.out.println("Response: "+response);
             try {
@@ -175,8 +168,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    public class GetTopRatedCallback extends AsyncCallback {
+    private class GetTopRatedCallback extends AsyncCallback {
         public void onTaskComplete(String response) {
             System.out.println("Response: "+response);
             try {
@@ -207,6 +199,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
+
+    /**
+     * Populate views dynamically as the data returns from server
+     * @param type
+     */
     private void populateViews(int type){
         TextView headingTextView = (TextView) inflator.inflate(R.layout.header_text_layout, null).findViewById(R.id.headerTextView);
         LinearLayout containerLayout = (LinearLayout) inflator.inflate(R.layout.horizontal_scroll_view_layout, null)
@@ -229,8 +228,6 @@ public class MainActivity extends AppCompatActivity {
                             new ImageLoader.ImageListener() {
                                 @Override
                                 public void onErrorResponse(VolleyError error) {
-//                                    viewHolder.productImg.setImageDrawable(mContext.getResources().getDrawable(R.drawable.default_img));
-//                                    viewHolder.loadProgressBar.setVisibility(View.GONE);
                                 }
 
                                 @Override
@@ -238,7 +235,6 @@ public class MainActivity extends AppCompatActivity {
                                     if (response.getBitmap() != null) {
                                         // load image into imageview
                                         imageView.setImageBitmap(response.getBitmap());
-//                                        viewHolder.loadProgressBar.setVisibility(View.GONE);
                                     }
                                 }
                             });
@@ -247,10 +243,21 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View v) {
                             int pos = (int) v.getTag();
-                            Toast.makeText(MainActivity.this, upComingMovieArrayList.get(pos).getTitle(), Toast.LENGTH_SHORT).show();
+                            //Show Detail View
+                            Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                            intent.putExtra("title", upComingMovieArrayList.get(pos).getTitle());
+                            intent.putExtra("releaseDate", upComingMovieArrayList.get(pos).getReleaseDate());
+                            intent.putExtra("popularity", upComingMovieArrayList.get(pos).getPopularity());
+                            intent.putExtra("voteAverage", upComingMovieArrayList.get(pos).getVoteAverage());
+                            intent.putExtra("overView", upComingMovieArrayList.get(pos).getOverView());
+                            intent.putExtra("largeImage", upComingMovieArrayList.get(pos).getLargeImage());
+                            startActivity(intent);
                         }
                     });
                     containerLayout.addView(imageView);
+                    if(nowPlayingMovieArrayList.size()!=0 && topRatedMovieArrayList.size()!=0 && popularMovieArrayList.size()!=0){
+                        progressBar.setVisibility(View.GONE);
+                    }
                 }
                 parentLayout.addView(headingTextView);
                 parentLayout.addView((View) containerLayout.getParent());
@@ -272,8 +279,6 @@ public class MainActivity extends AppCompatActivity {
                             new ImageLoader.ImageListener() {
                                 @Override
                                 public void onErrorResponse(VolleyError error) {
-//                                    viewHolder.productImg.setImageDrawable(mContext.getResources().getDrawable(R.drawable.default_img));
-//                                    viewHolder.loadProgressBar.setVisibility(View.GONE);
                                 }
 
                                 @Override
@@ -281,20 +286,29 @@ public class MainActivity extends AppCompatActivity {
                                     if (response.getBitmap() != null) {
                                         // load image into imageview
                                         imageView.setImageBitmap(response.getBitmap());
-//                                        viewHolder.loadProgressBar.setVisibility(View.GONE);
                                     }
                                 }
                             });
-//                    imageView.setImageDrawable(getResources().getDrawable(R.drawable.test_image));
                     imageView.setTag(x);
                     imageView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             int pos = (int) v.getTag();
-                            Toast.makeText(MainActivity.this, nowPlayingMovieArrayList.get(pos).getTitle(), Toast.LENGTH_SHORT).show();
+                            //Show Detail View
+                            Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                            intent.putExtra("title", nowPlayingMovieArrayList.get(pos).getTitle());
+                            intent.putExtra("releaseDate", nowPlayingMovieArrayList.get(pos).getReleaseDate());
+                            intent.putExtra("popularity", nowPlayingMovieArrayList.get(pos).getPopularity());
+                            intent.putExtra("voteAverage", nowPlayingMovieArrayList.get(pos).getVoteAverage());
+                            intent.putExtra("overView", nowPlayingMovieArrayList.get(pos).getOverView());
+                            intent.putExtra("largeImage", nowPlayingMovieArrayList.get(pos).getLargeImage());
+                            startActivity(intent);
                         }
                     });
                     containerLayout.addView(imageView);
+                    if(upComingMovieArrayList.size()!=0 && topRatedMovieArrayList.size()!=0 && popularMovieArrayList.size()!=0){
+                        progressBar.setVisibility(View.GONE);
+                    }
                 }
                 parentLayout.addView(headingTextView);
                 parentLayout.addView((View) containerLayout.getParent());
@@ -316,8 +330,6 @@ public class MainActivity extends AppCompatActivity {
                             new ImageLoader.ImageListener() {
                                 @Override
                                 public void onErrorResponse(VolleyError error) {
-//                                    viewHolder.productImg.setImageDrawable(mContext.getResources().getDrawable(R.drawable.default_img));
-//                                    viewHolder.loadProgressBar.setVisibility(View.GONE);
                                 }
 
                                 @Override
@@ -325,23 +337,32 @@ public class MainActivity extends AppCompatActivity {
                                     if (response.getBitmap() != null) {
                                         // load image into imageview
                                         imageView.setImageBitmap(response.getBitmap());
-//                                        viewHolder.loadProgressBar.setVisibility(View.GONE);
                                     }
                                 }
                             });
-//                    imageView.setImageDrawable(getResources().getDrawable(R.drawable.test_image));
                     imageView.setTag(x);
                     imageView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             int pos = (int) v.getTag();
-                            Toast.makeText(MainActivity.this, popularMovieArrayList.get(pos).getTitle(), Toast.LENGTH_SHORT).show();
+                            //Show Detail View
+                            Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                            intent.putExtra("title", popularMovieArrayList.get(pos).getTitle());
+                            intent.putExtra("releaseDate", popularMovieArrayList.get(pos).getReleaseDate());
+                            intent.putExtra("popularity", popularMovieArrayList.get(pos).getPopularity());
+                            intent.putExtra("voteAverage", popularMovieArrayList.get(pos).getVoteAverage());
+                            intent.putExtra("overView", popularMovieArrayList.get(pos).getOverView());
+                            intent.putExtra("largeImage", popularMovieArrayList.get(pos).getLargeImage());
+                            startActivity(intent);
                         }
                     });
                     containerLayout.addView(imageView);
                 }
                 parentLayout.addView(headingTextView);
                 parentLayout.addView((View) containerLayout.getParent());
+                if(nowPlayingMovieArrayList.size()!=0 && topRatedMovieArrayList.size()!=0 && upComingMovieArrayList.size()!=0){
+                    progressBar.setVisibility(View.GONE);
+                }
                 break;
 
             case 3:
@@ -360,8 +381,6 @@ public class MainActivity extends AppCompatActivity {
                             new ImageLoader.ImageListener() {
                                 @Override
                                 public void onErrorResponse(VolleyError error) {
-//                                    viewHolder.productImg.setImageDrawable(mContext.getResources().getDrawable(R.drawable.default_img));
-//                                    viewHolder.loadProgressBar.setVisibility(View.GONE);
                                 }
 
                                 @Override
@@ -369,26 +388,33 @@ public class MainActivity extends AppCompatActivity {
                                     if (response.getBitmap() != null) {
                                         // load image into imageview
                                         imageView.setImageBitmap(response.getBitmap());
-//                                        viewHolder.loadProgressBar.setVisibility(View.GONE);
                                     }
                                 }
                             });
-//                    imageView.setImageDrawable(getResources().getDrawable(R.drawable.test_image));
                     imageView.setTag(x);
                     imageView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             int pos = (int) v.getTag();
-                            Toast.makeText(MainActivity.this, topRatedMovieArrayList.get(pos).getTitle(), Toast.LENGTH_SHORT).show();
+                            //Show Detail View
+                            Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                            intent.putExtra("title", topRatedMovieArrayList.get(pos).getTitle());
+                            intent.putExtra("releaseDate", topRatedMovieArrayList.get(pos).getReleaseDate());
+                            intent.putExtra("popularity", topRatedMovieArrayList.get(pos).getPopularity());
+                            intent.putExtra("voteAverage", topRatedMovieArrayList.get(pos).getVoteAverage());
+                            intent.putExtra("overView", topRatedMovieArrayList.get(pos).getOverView());
+                            intent.putExtra("largeImage", topRatedMovieArrayList.get(pos).getLargeImage());
+                            startActivity(intent);
                         }
                     });
                     containerLayout.addView(imageView);
                 }
                 parentLayout.addView(headingTextView);
                 parentLayout.addView((View) containerLayout.getParent());
+                if(nowPlayingMovieArrayList.size()!=0 && upComingMovieArrayList.size()!=0 && popularMovieArrayList.size()!=0){
+                    progressBar.setVisibility(View.GONE);
+                }
                 break;
-
-
         }
     }
 }

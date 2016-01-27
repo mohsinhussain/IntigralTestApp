@@ -64,6 +64,11 @@ public class Movie {
         return completeImageURL;
     }
 
+    public String getLargeImage() {
+        String completeImageURL = Constants.LARGE_IMAGE_BASE_PATH+posterPath;
+        return completeImageURL;
+    }
+
     public void setPosterPath(String posterPath) {
         this.posterPath = posterPath;
     }

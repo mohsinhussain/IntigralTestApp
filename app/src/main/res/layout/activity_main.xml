@@ -8,8 +8,13 @@
     <LinearLayout
         android:id="@+id/parentLayout"
         android:orientation="vertical"
+        android:layout_gravity="center_horizontal|top"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 </ScrollView>
